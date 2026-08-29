@@ -16,10 +16,9 @@ const client = createMotuClient({
 });
 
 console.log('MIDI inputs:', midi.getInputs())
-const MIDI_INPUT = 'MPK261 Port A';
-const FADER_CC_ARRAY = [18, 21, 22, 23, 24, 25, 26, 27]
+const FADER_CC_ARRAY = [18, 21, 22, 23, 24, 25, 26, 27];
 
-const input = new midi.Input(MIDI_INPUT);
+const input = new midi.Input('MPK261 Port A');
 input.on('cc', (msg) => {
   if (msg.controller === FADER_CC_ARRAY[0]) {
     // MIC
@@ -47,3 +46,13 @@ input.on('cc', (msg) => {
     client.set('mix/main/0/matrix/fader', Math.pow(msg.value / 127, 4));
   }
 });
+
+type TestStr = `test/foo/${number}/bar`
+
+type Start<T extends string, S extends string = ''> = T extends `${infer CHAR}${infer REST}`
+  ? REST extends `/${number}` | `/${number}/${string}`
+    ? `${S}${CHAR}`
+    : Start<REST, `${S}${CHAR}`>
+  : never;
+
+type Result = Start<TestStr>;

@@ -14,7 +14,6 @@ const typesMap = {
   'real': 'number',
   'real_bool': '0 | 1',
   'real_enum': 'number',
-
 }
 
 const parseData = async () => {
