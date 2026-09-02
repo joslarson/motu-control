@@ -681,6 +681,7 @@ type PossiblePaths<T extends string> = T extends infer K
     )
   : never;
 
+// export type DatastoreKey = PossiblePaths<keyof Datastore>
 export type DatastoreKey = PossiblePaths<keyof Datastore>
 
 export type ExtractDataStoreKey<T extends DatastoreKey> =
