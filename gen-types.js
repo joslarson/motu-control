@@ -14,7 +14,6 @@ const typesMap = {
   'real': 'number',
   'real_bool': '0 | 1',
   'real_enum': 'number',
-
 }
 
 const parseData = async () => {
@@ -60,13 +59,28 @@ async function main() {
   const data = await parseData();
   let result = '';
 
-  const groupKeys = Object.keys(data);
+  // The application controls the device mixer and physical I/O. Global and
+  // AVB configuration types add a large, unused API surface.
+  const includedGroups = new Set(['RoutingAndIOSettings', 'MixerSettings']);
+  const groupKeys = Object.keys(data).filter(groupKey => includedGroups.has(groupKey));
   groupKeys.forEach((groupKey, i) => {
     if (i > 0) result +=  `\n`;
     if (groupKey.description) result +=  `/** ${groupKey.description} */\n`;
     result += `export type ${groupKey} = {\n`;
 
-    Object.keys(data[groupKey]).forEach((propKey, ii) => {
+    const propKeys = Object.keys(data[groupKey]).filter(propKey => {
+      if (groupKey !== 'MixerSettings') return true;
+
+      return ![
+        '/hpf/',
+        '/eq/',
+        '/comp/',
+        '/matrix/aux/',
+      ].some(segment => propKey.includes(segment)) &&
+        !propKey.startsWith("mix/ctrls/${");
+    });
+
+    propKeys.forEach((propKey, ii) => {
       const { description, type, ...attrs } = data[groupKey][propKey];
 
       if (ii > 0) result +=  `} & {\n`;
@@ -99,8 +113,6 @@ export type ExtractDataStoreKey<T extends DatastoreKey> =
   keyof { [K in DatastoreKey as T extends K ? K : never]: unknown };\n`
 
   await writeFile('./api.ts', result, 'utf-8');
-
-  console.log(result);
 }
 
 if (require.main === module) main();

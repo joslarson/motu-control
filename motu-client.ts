@@ -1,5 +1,14 @@
 import { Datastore, DatastoreKey, ExtractDataStoreKey } from "./api";
 
+type Start<T extends string, S extends string = ''> = T extends `${infer CHAR}${infer REST}`
+  ? REST extends `/${number}` | `/${number}/${string}`
+    ? `${S}${CHAR}`
+    : Start<REST, `${S}${CHAR}`>
+  : never;
+
+
+type DataStoreStart = Start<DatastoreKey>
+
 const asyncSleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
 type MotuClientOptions = {
@@ -8,6 +17,7 @@ type MotuClientOptions = {
   deviceId: string;
   labels: Record<string, string>;
 };
+
 const fetchFirstDeviceId = async (origin: string) => {
   console.log(`${origin}/connected_devices`);
   const res = await fetch(`${origin}/connected_devices`);
@@ -18,6 +28,7 @@ const fetchFirstDeviceId = async (origin: string) => {
 
   return deviceList[0].uid;
 };
+
 export const createMotuClient = (initOptions: Partial<MotuClientOptions> = {}) => {
   const origin = initOptions.origin || 'http://127.0.0.1:1280';
   const optionsPromise = new Promise<MotuClientOptions>(async (resolve) => {
@@ -93,6 +104,9 @@ export const createMotuClient = (initOptions: Partial<MotuClientOptions> = {}) =
 
   // return client
   return {
+    sub<T extends DatastoreKey>() {
+
+    },
     async get<T extends DatastoreKey>(path: T) {
       type ExtractedKey = ExtractDataStoreKey<T> extends string ? ExtractDataStoreKey<T> : never;
       const store = await getStore();
